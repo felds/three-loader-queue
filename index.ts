@@ -1,1 +1,1 @@
-alert('chubiduba')
+export { default } from "./src/preloader"
