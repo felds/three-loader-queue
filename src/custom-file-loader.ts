@@ -21,41 +21,34 @@ class CustomFileLoader extends Loader {
 
   load(url: string, onLoad: (buffer: any) => void, onProgress: any, onError: any) {
     if (url === undefined) url = ""
-
     if (this.path !== undefined) url = this.path + url
 
     url = this.manager.resolveURL(url)
-
     const cached = Cache.get(url)
 
     if (cached !== undefined) {
       this.manager.itemStart(url)
-
       setTimeout(() => {
         if (onLoad) onLoad(cached)
-
         this.manager.itemEnd(url)
       }, 0)
-
       return cached
     }
 
     // Check if request is duplicate
-
-    if (loading[url] !== undefined) {
-      loading[url].push({
+    if (loading.url) {
+      // Request is duplicate. Add callbacks and bail out.
+      loading.url.push({
         onLoad: onLoad,
         onProgress: onProgress,
         onError: onError,
       })
-
       return
     }
 
     // Initialise array for duplicate requests
-    loading[url] = []
-
-    loading[url].push({
+    loading.url = []
+    loading.url.push({
       onLoad: onLoad,
       onProgress: onProgress,
       onError: onError,
@@ -84,7 +77,6 @@ class CustomFileLoader extends Loader {
           }
 
           // Workaround: Checking if response.body === undefined for Alipay browser #23548
-
           if (
             typeof ReadableStream === "undefined" ||
             typeof response.body === "undefined" ||
@@ -93,7 +85,7 @@ class CustomFileLoader extends Loader {
             return response
           }
 
-          const callbacks = loading[url]
+          const callbacks = loading.url ?? []
           const reader = response.body.getReader()
           const contentLength = response.headers.get("Content-Length")
           const total = contentLength ? parseInt(contentLength) : 0
@@ -113,8 +105,7 @@ class CustomFileLoader extends Loader {
                     loaded += value.byteLength
 
                     const event = new ProgressEvent("progress", { lengthComputable, loaded, total })
-                    for (let i = 0, il = callbacks.length; i < il; i++) {
-                      const callback = callbacks[i]
+                    for (let callback of callbacks) {
                       if (callback.onProgress) callback.onProgress(event)
                     }
 
@@ -181,18 +172,17 @@ class CustomFileLoader extends Loader {
         // error response bodies as proper responses to requests.
         Cache.add(url, data)
 
-        const callbacks = loading[url]
-        delete loading[url]
+        const callbacks = loading.url || []
+        delete loading.url
 
-        for (let i = 0, il = callbacks.length; i < il; i++) {
-          const callback = callbacks[i]
+        for (const callback of callbacks) {
           if (callback.onLoad) callback.onLoad(data)
         }
       })
       .catch((err) => {
         // Abort errors and other errors are handled the same
 
-        const callbacks = loading[url]
+        const callbacks = loading.url
 
         if (callbacks === undefined) {
           // When onLoad was called and url was deleted in `loading`
@@ -200,10 +190,9 @@ class CustomFileLoader extends Loader {
           throw err
         }
 
-        delete loading[url]
+        delete loading.url
 
-        for (let i = 0, il = callbacks.length; i < il; i++) {
-          const callback = callbacks[i]
+        for (const callback of callbacks) {
           if (callback.onError) callback.onError(err)
         }
 
