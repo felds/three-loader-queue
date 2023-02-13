@@ -17,13 +17,13 @@ interface EventMap {
 
 export default class Preloader extends EventTarget {
   private manager: LoadingManager
-  private loaders: Record<string, Loader>
+  private loaders = new Map<string, Loader>()
   private _loaded = false
 
   public assets: Record<string, any>
   public debug: boolean = false
 
-  constructor(assetsPath: string) {
+  constructor(private assetsPath: string = "") {
     super()
 
     this.manager = new LoadingManager()
@@ -31,29 +31,38 @@ export default class Preloader extends EventTarget {
     this.manager.onProgress = this.onProgress
     this.manager.onError = this.onError
 
-    this.loaders = {
-      gltf: new GLTFLoader(this.manager).setPath(assetsPath),
-      texture: new TextureLoader(this.manager).setPath(assetsPath),
-      audio: new AudioLoader(this.manager).setPath(assetsPath),
-      image: new ImageLoader(this.manager).setPath(assetsPath),
-      file: new FileLoader(this.manager).setPath(assetsPath),
-      url: new UrlLoader(this.manager).setPath(assetsPath),
-    } as const
-
     this.assets = {}
   }
 
+  public static withCommonLoaders(...args: ConstructorParameters<typeof Preloader>) {
+    const obj = new Preloader(...args)
+    obj.addLoader("gltf", new GLTFLoader())
+    obj.addLoader("texture", new TextureLoader())
+    obj.addLoader("audio", new AudioLoader())
+    obj.addLoader("image", new ImageLoader())
+    obj.addLoader("file", new FileLoader())
+    obj.addLoader("url", new UrlLoader())
+    return obj
+  }
+
+  addLoader(name: string, loader: Loader) {
+    loader.manager = this.manager
+    loader.path = this.assetsPath
+    this.loaders.set(name, loader)
+  }
+
+  /** @todo Make image sequence be it's own loader */
   async queue(list: QueueItem[]) {
     const promises = list.map(async (item): Promise<[string, any]> => {
       const { name, url, type } = item
       if (type === "sequence") {
         // image sequence
         const urls = expand(url)
-        const sequence = await Promise.all(urls.map((url) => this.loaders["image"]?.loadAsync(url)))
+        const sequence = await Promise.all(urls.map((url) => this.loaders.get("image")?.loadAsync(url)))
         return [name, sequence]
       } else {
         // everything else
-        const loader = this.loaders[type]
+        const loader = this.loaders.get(type)
         if (!loader) throw new Error(`No loader for the type ${type}`)
 
         const results = await loader.loadAsync(url)

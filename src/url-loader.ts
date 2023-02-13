@@ -5,7 +5,7 @@ import { CustomFileLoader } from "./custom-file-loader"
  * Generic loader for files that loads the file in memory and returns a blob URL.
  */
 export class UrlLoader extends Loader {
-  constructor(manager: THREE.LoadingManager) {
+  constructor(manager?: THREE.LoadingManager) {
     super(manager)
   }
 
