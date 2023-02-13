@@ -19,7 +19,7 @@ class CustomFileLoader extends Loader {
     super(manager)
   }
 
-  load(url: string, onLoad: (buffer: Buffer) => void, onProgress: any, onError: any) {
+  load(url: string, onLoad: (buffer: any) => void, onProgress: any, onError: any) {
     if (url === undefined) url = ""
 
     if (this.path !== undefined) url = this.path + url
