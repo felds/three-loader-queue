@@ -1,6 +1,5 @@
 import expand from "str-expand"
-import * as THREE from "three"
-import { Loader, LoadingManager } from "three"
+import { AudioLoader, FileLoader, ImageLoader, Loader, LoadingManager, TextureLoader } from "three"
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js"
 import { EventDispatcher } from "./event-dispatcher"
 import { UrlLoader } from "./url-loader"
@@ -23,17 +22,17 @@ export default class Preloader extends EventDispatcher {
   constructor(assetsPath: string) {
     super()
 
-    this.manager = new THREE.LoadingManager()
+    this.manager = new LoadingManager()
     this.manager.onStart = this.onStart
     this.manager.onProgress = this.onProgress
     this.manager.onError = this.onError
 
     this.loaders = {
       gltf: new GLTFLoader(this.manager).setPath(assetsPath),
-      texture: new THREE.TextureLoader(this.manager).setPath(assetsPath),
-      audio: new THREE.AudioLoader(this.manager).setPath(assetsPath),
-      image: new THREE.ImageLoader(this.manager).setPath(assetsPath),
-      file: new THREE.FileLoader(this.manager).setPath(assetsPath),
+      texture: new TextureLoader(this.manager).setPath(assetsPath),
+      audio: new AudioLoader(this.manager).setPath(assetsPath),
+      image: new ImageLoader(this.manager).setPath(assetsPath),
+      file: new FileLoader(this.manager).setPath(assetsPath),
       url: new UrlLoader(this.manager).setPath(assetsPath),
     } as const
 
