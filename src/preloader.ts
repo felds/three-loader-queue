@@ -1,7 +1,6 @@
 import expand from "str-expand"
 import { AudioLoader, FileLoader, ImageLoader, Loader, LoadingManager, TextureLoader } from "three"
 import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js"
-import { EventDispatcher } from "./event-dispatcher"
 import { UrlLoader } from "./url-loader"
 
 type QueueItem = {
@@ -11,17 +10,21 @@ type QueueItem = {
   [k: string]: any
 }
 
-export default class Preloader extends EventDispatcher {
+interface EventMap {
+  onProgress: ProgressEvent
+  onComplete: Event
+}
+
+export default class Preloader {
   private manager: LoadingManager
   private loaders: Record<string, Loader>
   private _loaded = false
 
   public assets: Record<string, any>
   public debug: boolean = false
+  private eventTarget = new EventTarget()
 
   constructor(assetsPath: string) {
-    super()
-
     this.manager = new LoadingManager()
     this.manager.onStart = this.onStart
     this.manager.onProgress = this.onProgress
@@ -60,17 +63,20 @@ export default class Preloader extends EventDispatcher {
     const results = await Promise.all(promises)
     this.assets = Object.fromEntries(results)
     this._loaded = true
+    this.eventTarget.dispatchEvent(new Event("onComplete"))
   }
 
   private onStart = (url: string, itemsLoaded: number, itemsTotal: number) => {
     if (this.debug) console.log(`Started loading file: ${url}.\nLoaded ${itemsLoaded} of ${itemsTotal} files.`)
   }
 
-  private onProgress = (url: string, itemsLoaded: number, itemsTotal: number) => {
-    if (this.debug) console.log(`Loading file: ${url}.\nLoaded ${itemsLoaded} of ${itemsTotal} files.`)
-    this.dispatch("onProgress", {
-      data: itemsLoaded / itemsTotal,
-    })
+  /**
+   * @todo get the totals by weight, not by number of files?
+   */
+  private onProgress = (url: string, loaded: number, total: number) => {
+    if (this.debug) console.log(`Loading file: ${url}.\nLoaded ${loaded} of ${total} files.`)
+    const event = new ProgressEvent("onProgress", { loaded, total })
+    this.eventTarget.dispatchEvent(event)
   }
 
   private onError = (url: string) => {
@@ -79,5 +85,14 @@ export default class Preloader extends EventDispatcher {
 
   get loaded() {
     return this._loaded
+  }
+
+  // EventTarget proxy
+  public addEventListener<K extends keyof EventMap>(
+    type: K,
+    listener: (ev: EventMap[K]) => any,
+    options?: AddEventListenerOptions,
+  ) {
+    this.eventTarget.addEventListener(type, listener as EventListener, options)
   }
 }
