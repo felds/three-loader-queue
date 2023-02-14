@@ -45,10 +45,16 @@ export default class Preloader extends EventTarget {
     return obj
   }
 
-  addLoader(name: string, loader: Loader) {
-    loader.manager = this.manager
+  /**
+   * Add a new loader to this preloader.
+   */
+  addLoader(type: string, createLoader: (manager: LoadingManager) => Loader) {
+    if (this.loaders.has(type)) {
+      throw Error(`A loader for the type ${type} already exists.`)
+    }
+    const loader = createLoader(this.manager)
     loader.path = this.assetsPath
-    this.loaders.set(name, loader)
+    this.loaders.set(type, loader)
   }
 
   /** @todo Make image sequence be it's own loader */
