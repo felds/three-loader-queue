@@ -22,8 +22,8 @@ const assets = await loaderQueue.load([
   { type: "image", name: "image_2", url: "path/to/image-2.png" },
 ])
 // assets = {
-//   image_1: <img ... />,
-//   image_2: <img ... />,
+//   image_1: <img />,
+//   image_2: <img />,
 // }
 ```
 
@@ -94,4 +94,32 @@ loaderQueue.addEventListener("onProgress", (ev) => {
 loaderQueue.addEventListener("onComplete", () => {
   console.log("Queue loaded!")
 })
+```
+
+## Loading asset sequences
+
+```ts
+// using an arbitrary array
+const assets = await loaderQueue.load([
+  {
+    type: "image",
+    name: "my-image-sequence",
+    url: [
+      "path/to/sequence/01.jpg",
+      "path/to/sequence/02.jpg",
+      // ...
+      "path/to/sequence/30.jpg",
+    ],
+  },
+])
+
+// same thing, but using str-expand
+import expand from "str-expand"
+const assets = await loaderQueue.load([
+  { type: "image", name: "my-image-sequence", url: expand("path/to/sequence/[01..30].jpg") },
+])
+
+// assets = {
+//   "my-image-sequence": [<img />, <img />, ..., <img />]
+// }
 ```
