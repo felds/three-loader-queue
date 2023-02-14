@@ -1,7 +1,22 @@
 {
   "name": "@felds/three-loader-queue",
   "version": "1.0.0-0",
-  "description": "",
+  "description": "A utility class that helps preloading multiple assets at once.",
+  "keywords": [
+    "threejs",
+    "loader",
+    "preloading"
+  ],
+  "contributors": [
+    {
+      "name": "Felds Liscia",
+      "url": "https://felds.dev/"
+    },
+    {
+      "name": "Thiago Canzian",
+      "url": "https://tgcnzn.com/"
+    }
+  ],
   "type": "module",
   "main": "dist/index.cjs",
   "module": "dist/index.js",
@@ -12,7 +27,6 @@
     "lint": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "",
   "license": "MIT",
   "dependencies": {
     "three": "^0.149.0"
