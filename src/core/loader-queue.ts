@@ -66,6 +66,7 @@ export default class LoaderQueue extends EventTarget {
     this.assets = Object.fromEntries(results)
     this._loaded = true
     this.dispatchEvent(new Event("onComplete"))
+    return this.assets
   }
 
   private onStart = (url: string, itemsLoaded: number, itemsTotal: number) => {
