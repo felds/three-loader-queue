@@ -37,7 +37,7 @@ export default class LoaderQueue extends EventTarget {
    * @param createLoader - A function that takes a `LoadingManager` object as its parameter and returns a `Loader` object.
    * @throws Will throw an error if a loader for the given asset type already exists.
    */
-  addLoader(type: string, createLoader: (manager: LoadingManager) => Loader) {
+  addLoader(type: string, createLoader: (manager: LoadingManager) => Loader): void {
     if (this.loaders.has(type)) {
       throw Error(`A loader for the type ${type} already exists.`)
     }
@@ -46,8 +46,7 @@ export default class LoaderQueue extends EventTarget {
     this.loaders.set(type, loader)
   }
 
-  /** @todo Make image sequence be it's own loader */
-  async load(list: Item[]) {
+  async load(list: Item[]): Promise<Record<string, any>> {
     const promises = list.map(async (item): Promise<[string, any]> => {
       const { name, url, type } = item
       const loader = this.loaders.get(type)
