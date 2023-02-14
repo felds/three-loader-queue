@@ -8,7 +8,8 @@
   "module": "dist/index.js",
   "types": "dist/index.d.ts",
   "scripts": {
-    "build": "tsup index.ts --format cjs,esm --dts",
+    "build": "npm run lint && tsup index.ts --format cjs,esm --dts",
+    "build:watch": "tsup index.ts --format cjs,esm --dts --watch",
     "lint": "tsc",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
