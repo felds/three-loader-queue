@@ -1,1 +1,1 @@
-export { default } from "./core/preloader"
+export { default } from "./core/loader-queue"

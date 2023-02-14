@@ -1,6 +1,6 @@
 import { Loader, LoadingManager } from "three"
 
-type QueueItem = {
+type Item = {
   name: string
   type: string
   url: string | string[]
@@ -11,7 +11,7 @@ interface EventMap {
   onComplete: Event
 }
 
-export default class Preloader extends EventTarget {
+export default class LoaderQueue extends EventTarget {
   private manager: LoadingManager
   private loaders = new Map<string, Loader>()
   private _loaded = false
@@ -47,7 +47,7 @@ export default class Preloader extends EventTarget {
   }
 
   /** @todo Make image sequence be it's own loader */
-  async queue(list: QueueItem[]) {
+  async queue(list: Item[]) {
     const promises = list.map(async (item): Promise<[string, any]> => {
       const { name, url, type } = item
       const loader = this.loaders.get(type)
