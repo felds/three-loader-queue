@@ -98,25 +98,19 @@ loaderQueue.addEventListener("onComplete", () => {
 
 ## Loading asset sequences
 
+Every asset type accept an array of URLs to load.
+The assets are also returned as an array.
+
+You can load the assets array from a JSON, from another module, written in place, but I recommend using [str-expand](https://www.npmjs.com/package/str-expand) to generate the list:
+
 ```ts
-// using an arbitrary array
+import expand from "str-expand"
 const assets = await loaderQueue.load([
   {
     type: "image",
     name: "my-image-sequence",
-    url: [
-      "path/to/sequence/01.jpg",
-      "path/to/sequence/02.jpg",
-      // ...
-      "path/to/sequence/30.jpg",
-    ],
+    url: expand("path/to/sequence/[01..30].jpg"),
   },
-])
-
-// same thing, but using str-expand
-import expand from "str-expand"
-const assets = await loaderQueue.load([
-  { type: "image", name: "my-image-sequence", url: expand("path/to/sequence/[01..30].jpg") },
 ])
 
 // assets = {
