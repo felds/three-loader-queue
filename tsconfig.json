@@ -9,5 +9,6 @@
     "noUncheckedIndexedAccess": true,
     "moduleResolution": "node",
     "skipLibCheck": true
-  }
+  },
+  "exclude": ["dist"]
 }

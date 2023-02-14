@@ -30,17 +30,6 @@ export default class Preloader extends EventTarget {
     this.assets = {}
   }
 
-  // public static withCommonLoaders(...args: ConstructorParameters<typeof Preloader>) {
-  //   const obj = new Preloader(...args)
-  //   obj.addLoader("gltf", (manager) => new GLTFLoader(manager))
-  //   obj.addLoader("texture", (manager) => new TextureLoader(manager))
-  //   obj.addLoader("audio", (manager) => new AudioLoader(manager))
-  //   obj.addLoader("image", (manager) => new ImageLoader(manager))
-  //   obj.addLoader("file", (manager) => new FileLoader(manager))
-  //   obj.addLoader("url", (manager) => new UrlLoader(manager))
-  //   return obj
-  // }
-
   /**
    * Adds a new loader to the manager for the given asset type.
    *
