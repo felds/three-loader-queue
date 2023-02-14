@@ -1,13 +1,9 @@
-import expand from "str-expand"
-import { AudioLoader, FileLoader, ImageLoader, Loader, LoadingManager, TextureLoader } from "three"
-import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader.js"
-import { UrlLoader } from "./url-loader"
+import { Loader, LoadingManager } from "three"
 
 type QueueItem = {
   name: string
   type: string
-  url: string
-  [k: string]: any
+  url: string | string[]
 }
 
 interface EventMap {
@@ -34,19 +30,23 @@ export default class Preloader extends EventTarget {
     this.assets = {}
   }
 
-  public static withCommonLoaders(...args: ConstructorParameters<typeof Preloader>) {
-    const obj = new Preloader(...args)
-    obj.addLoader("gltf", new GLTFLoader())
-    obj.addLoader("texture", new TextureLoader())
-    obj.addLoader("audio", new AudioLoader())
-    obj.addLoader("image", new ImageLoader())
-    obj.addLoader("file", new FileLoader())
-    obj.addLoader("url", new UrlLoader())
-    return obj
-  }
+  // public static withCommonLoaders(...args: ConstructorParameters<typeof Preloader>) {
+  //   const obj = new Preloader(...args)
+  //   obj.addLoader("gltf", (manager) => new GLTFLoader(manager))
+  //   obj.addLoader("texture", (manager) => new TextureLoader(manager))
+  //   obj.addLoader("audio", (manager) => new AudioLoader(manager))
+  //   obj.addLoader("image", (manager) => new ImageLoader(manager))
+  //   obj.addLoader("file", (manager) => new FileLoader(manager))
+  //   obj.addLoader("url", (manager) => new UrlLoader(manager))
+  //   return obj
+  // }
 
   /**
-   * Add a new loader to this preloader.
+   * Adds a new loader to the manager for the given asset type.
+   *
+   * @param type - The type of asset that the loader will handle.
+   * @param createLoader - A function that takes a `LoadingManager` object as its parameter and returns a `Loader` object.
+   * @throws Will throw an error if a loader for the given asset type already exists.
    */
   addLoader(type: string, createLoader: (manager: LoadingManager) => Loader) {
     if (this.loaders.has(type)) {
@@ -61,19 +61,16 @@ export default class Preloader extends EventTarget {
   async queue(list: QueueItem[]) {
     const promises = list.map(async (item): Promise<[string, any]> => {
       const { name, url, type } = item
-      if (type === "sequence") {
-        // image sequence
-        const urls = expand(url)
-        const sequence = await Promise.all(urls.map((url) => this.loaders.get("image")?.loadAsync(url)))
-        return [name, sequence]
-      } else {
-        // everything else
-        const loader = this.loaders.get(type)
-        if (!loader) throw new Error(`No loader for the type ${type}`)
-
-        const results = await loader.loadAsync(url)
-        return [name, results]
+      const loader = this.loaders.get(type)
+      if (!loader) {
+        throw new Error(`No loader for the type ${type}`)
       }
+
+      const results = Array.isArray(url)
+        ? await Promise.all(url.map((x) => loader.loadAsync(x)))
+        : await loader.loadAsync(url)
+
+      return [name, results]
     })
 
     const results = await Promise.all(promises)
@@ -86,9 +83,6 @@ export default class Preloader extends EventTarget {
     if (this.debug) console.log(`Started loading file: ${url}.\nLoaded ${itemsLoaded} of ${itemsTotal} files.`)
   }
 
-  /**
-   * @todo get the totals by weight, not by number of files?
-   */
   private onProgress = (url: string, loaded: number, total: number) => {
     if (this.debug) console.log(`Loading file: ${url}.\nLoaded ${loaded} of ${total} files.`)
     const event = new ProgressEvent("onProgress", { loaded, total })
@@ -97,10 +91,6 @@ export default class Preloader extends EventTarget {
 
   private onError = (url: string) => {
     if (this.debug) console.log(`There was an error loading ${url}`)
-  }
-
-  get loaded() {
-    return this._loaded
   }
 
   addEventListener<K extends keyof EventMap>(
@@ -117,5 +107,9 @@ export default class Preloader extends EventTarget {
     options?: boolean | EventListenerOptions,
   ): void {
     super.removeEventListener(type, listener as EventListenerOrEventListenerObject, options)
+  }
+
+  get loaded() {
+    return this._loaded
   }
 }
