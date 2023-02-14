@@ -8,7 +8,9 @@
     "strict": true,
     "noUncheckedIndexedAccess": true,
     "moduleResolution": "node",
-    "skipLibCheck": true
+    "skipLibCheck": true,
+    "jsx": "react",
+    "allowSyntheticDefaultImports": true
   },
   "exclude": ["dist"]
 }
