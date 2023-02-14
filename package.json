@@ -1,5 +1,5 @@
 {
-  "name": "@felds/three-preloader",
+  "name": "@felds/three-preloader-queue",
   "version": "1.0.0-0",
   "description": "",
   "type": "module",
