@@ -47,7 +47,7 @@ export default class LoaderQueue extends EventTarget {
   }
 
   /** @todo Make image sequence be it's own loader */
-  async queue(list: Item[]) {
+  async load(list: Item[]) {
     const promises = list.map(async (item): Promise<[string, any]> => {
       const { name, url, type } = item
       const loader = this.loaders.get(type)
